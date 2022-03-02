@@ -88,6 +88,7 @@ class ASTGeneration(D96Visitor):
         if ctx.class_type():
             return self.visit(ctx.class_type())
     
+    
     def visitArray_type(self, ctx: D96Parser.ProgramContext):
         return "Arraytype"
 
