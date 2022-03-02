@@ -61,7 +61,7 @@ next_array: COMMA indexed_array next_array | ;
 // 4 TYPE AND VALUE
 // 4.1 PRIMITIVE TYPES
 // 4.1.1 BOOLEAN TYPE
-primitive_type: BOOLEAN | INT | FLOAT | STRING | array_type;
+primitive_type: BOOLEAN | INT | FLOAT | STRING | array_type | class_type;
 
 
 // 4.2 ARRAY TYPE
@@ -137,6 +137,7 @@ exp10: object_creation | operand;
 operand: ID
         | DOLLAR_ID
         | SELF
+        | NULL
         | INTEGER_LITERAL
         | BOOLEAN_LITERAL
         | FLOAT_LITERAL

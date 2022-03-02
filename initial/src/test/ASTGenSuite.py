@@ -5,23 +5,15 @@ from AST import *
 class ASTGenSuite(unittest.TestCase):
     def test_simple_program(self):
         """Simple program: int main() {} """
-        input = """int main() {}"""
-        expect = str(Program([FuncDecl(Id("main"),[],IntType(),Block([],[]))]))
+        input = """Class Shape {
+            Var $a,b : Int = 5,6;
+        }"""
+        expect = str(Program([ClassDecl(classname=Id("Shape"),memlist=[AttributeDecl(kind=Instance(),decl=ConstDecl(constant=Id("a"),constType=IntType(),value=IntLiteral(5)))])]))
         self.assertTrue(TestAST.test(input,expect,300))
 
-    def test_more_complex_program(self):
-        """More complex program"""
-        input = """int main () {
-            putIntLn(4);
-        }"""
-        expect = str(Program([FuncDecl(Id("main"),[],IntType(),Block([],[CallExpr(Id("putIntLn"),[IntLiteral(4)])]))]))
-        self.assertTrue(TestAST.test(input,expect,301))
-    
-    def test_call_without_parameter(self):
-        """More complex program"""
-        input = """int main () {
-            getIntLn();
-        }"""
-        expect = str(Program([FuncDecl(Id("main"),[],IntType(),Block([],[CallExpr(Id("getIntLn"),[])]))]))
-        self.assertTrue(TestAST.test(input,expect,302))
+    # def test_simple_program(self):
+    #     """Simple program: int main() {} """
+    #     input = """Class Shape : circle {}"""
+    #     expect = str(Program([ClassDecl(classname=Id("Shape"),parentname=Id("circle"),memlist=[])]))
+    #     self.assertTrue(TestAST.test(input,expect,301))
    

@@ -1,1 +1,3 @@
-int main() {}
+Class Shape {
+            Var $a,b : Int = 5,6;
+        }
