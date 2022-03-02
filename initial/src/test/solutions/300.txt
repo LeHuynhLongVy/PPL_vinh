@@ -1,1 +1,1 @@
-Program(List(FuncDecl(Id(main),List(),IntType,Block(List(),List()))))
+Program([ClassDecl(Id(Shape),[AttributeDecl(Static,VarDecl(Id($a),IntType,IntLit(5))),AttributeDecl(Instance,VarDecl(Id(b),IntType,IntLit(6)))])])

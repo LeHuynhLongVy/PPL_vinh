@@ -259,7 +259,7 @@ class Block(Stmt):
 class ConstDecl(StoreDecl):
     constant: Id
     constType: Type
-    value: Expr = None
+    value: Expr
 
     def __str__(self):
         return "ConstDecl(" + str(self.constant) + "," + str(self.constType) + "," + str(self.value) + ")"
