@@ -23,9 +23,9 @@ class ASTGeneration(D96Visitor):
             return []
         else:
             member_list = self.visit(ctx.nextmember())
-            print("member_list o 1: ", member_list)
+            # print("member_list o 1: ", member_list)
             member_list = self.visit(ctx.member()) + member_list
-            print("member_list o 2: ", member_list)
+            # print("member_list o 2: ", member_list)
             return member_list
     
     def visitNextmember(self, ctx: D96Parser.ProgramContext):
@@ -33,14 +33,14 @@ class ASTGeneration(D96Visitor):
             return []
         else:
             member_list = self.visit(ctx.nextmember())
-            print("member_list o 3: ", member_list)
+            # print("member_list o 3: ", member_list)
             member_list = self.visit(ctx.member()) + member_list
-            print("member_list o 4: ", member_list)
+            # print("member_list o 4: ", member_list)
             return member_list
     
     def visitMember(self, ctx: D96Parser.ProgramContext):
         if ctx.attribute():
-            print("member_list o duoc tra ve khi la attribute: ", self.visit(ctx.attribute()))
+            # print("member_list o duoc tra ve khi la attribute: ", self.visit(ctx.attribute()))
             return self.visit(ctx.attribute())
         elif ctx.method():
             return self.visit(ctx.method())
@@ -48,13 +48,13 @@ class ASTGeneration(D96Visitor):
     def visitAttribute(self, ctx: D96Parser.ProgramContext):
         listattribute = self.visit(ctx.list_of_attribute_names()) # di lay list_of_attribute_name
         listexp = self.visit(ctx.list_of_exp()) if ctx.list_of_exp() else None # neu co list_of_exp thi di lay (visit) cai list_of_exp ve roi gan vo bien listexp. Con khong thi gan None cho no
-        print("value list: ", listexp)
-        print("attribute list : ", listattribute)
+        # print("value list: ", listexp)
+        # print("attribute list : ", listattribute)
         
         res = [] # list dung ket qua de tra ve cho thang nao ma visit(ctx.attribute())
         for i in range(0, len(listattribute)): #lap qua tung thang trong 2 cai list tren
-            print("value list at i ", listexp[i])
-            print("attribute list at i: ", listattribute[i])
+            # print("value list at i ", listexp[i])
+            # print("attribute list at i: ", listattribute[i])
             
             kind = Static() if isinstance(listattribute[i],tuple) else Instance() # neu ma cai gia tri trong listattribute o vi tri i ma la tuple thi no la static, nguoc lai thi la instance 
             decl = ConstDecl(listattribute[i][0] if isinstance(listattribute[i],tuple) else listattribute[i], self.visit(ctx.type_name()), listexp[i] if listexp != None else None) if ctx.VAL() \
@@ -68,7 +68,7 @@ class ASTGeneration(D96Visitor):
             # Va khi no bang None thi khong de yen no la None 
             # Cai type_name thi phai di lay no ve. 
             res.append(AttributeDecl(kind, decl))
-        print("member_list o duoc tra ve khi la res -> attribute: ", res)
+        # print("member_list o duoc tra ve khi la res -> attribute: ", res)
         return res
 
     def visitType_name(self, ctx: D96Parser.ProgramContext):
@@ -88,12 +88,22 @@ class ASTGeneration(D96Visitor):
         if ctx.class_type():
             return self.visit(ctx.class_type())
     
-    
     def visitArray_type(self, ctx: D96Parser.ProgramContext):
-        return "Arraytype"
+        size = self.visit(ctx.size())
+        eleType = self.visit(ctx.element_type())
+        return ArrayType(size, eleType)
+
+    def visitElement_type(self, ctx: D96Parser.ProgramContext):
+        if ctx.primitive_type():
+            return self.visit(ctx.primitive_type())
+        else:
+            return self.visit(ctx.array_type())
+
+    def visitSize(self, ctx: D96Parser.ProgramContext):
+        return ctx.INTEGER_LITERAL().getText()
 
     def visitClass_type(self, ctx: D96Parser.ProgramContext):
-        return "Classtype"
+        return ClassType(ctx.ID().getText())
 
     def visitList_of_attribute_names(self, ctx: D96Parser.ProgramContext):
         list_of_attribute_names = self.visit(ctx.next_attribute_name())
@@ -115,8 +125,71 @@ class ASTGeneration(D96Visitor):
             return (Id(ctx.DOLLAR_ID().getText()),1)
     
     def visitMethod(self, ctx: D96Parser.ProgramContext):
-        return ["Method"]
+        if ctx.constructor():
+            kind = Instance()
+            name = Id("<init>")
+            param,body = self.visit(ctx.constructor())
+            return MethodDecl(kind,name,param,body)
+        elif ctx.destructor():
+            kind = Instance()
+            name = Id("<init>")
+            param,body = self.visit(ctx.destructor())
+            return MethodDecl(kind,name,param,body)
+        else:
+            if ctx.ID():
+                kind = Instance()
+                name = Id(ctx.ID().getText())
+                param = self.visit(ctx.list_of_parameters())
+                body = self.visit(ctx.block_statement())
+                return MethodDecl(kind,name,param,body)
+            elif ctx.DOLLAR_ID():
+                kind = Static()
+                name = Id(ctx.DOLLAR_ID().getText())
+                param = self.visit(ctx.list_of_parameters())
+                body = self.visit(ctx.block_statement())
+                return MethodDecl(kind,name,param,body)
+
+    def visitList_of_parameters(self, ctx: D96Parser.ProgramContext):
+        if ctx.getChildCount() == 0:
+            return []
+        else:
+            list_of_parameters = self.visit(ctx.next_parameter_dec())
+            list_of_parameters = [self.visit(ctx.parameter_dec())] + list_of_parameters
+            return list_of_parameters
+
+    def visitNext_parameter_dec(self, ctx: D96Parser.ProgramContext):
+        if ctx.getChildCount() == 0:
+            return []
+        else:
+            list_of_parameters = self.visit(ctx.next_parameter_dec())
+            list_of_parameters = [self.visit(ctx.parameter_dec())] + list_of_parameters
+            return list_of_parameters
+
+    def visitParameter_dec(self, ctx: D96Parser.ProgramContext):
+        res =[]
+        idlist = self.visit(ctx.id_list())
+        typ = self.visit(ctx.typ())
+        for i in idlist:
+            res.append(VarDecl(i,typ)) 
+        return res
     
+    def visitId_list(self, ctx: D96Parser.ProgramContext):
+        idlist = self.visit(ctx.next_id())
+        idlist = [ctx.ID().getText()] + idlist
+        return idlist
+
+    def visitNext_id(self, ctx: D96Parser.ProgramContext):
+        if ctx.getChildCount() == 0:
+            return []
+        else:
+            idlist = self.visit(ctx.next_id())
+            idlist = [ctx.ID().getText()] + idlist
+            return idlist
+    
+    def visitTyp(self, ctx: D96Parser.ProgramContext):
+        return self.visit(ctx.primitive_type())
+    
+
     def visitExp(self, ctx: D96Parser.ProgramContext):
         if ctx.STRING_CONCAT():
             return BinaryOp(ctx.STRING_CONCAT().getText(), self.visit(ctx.exp(0)), self.visit(ctx.exp(1)))
